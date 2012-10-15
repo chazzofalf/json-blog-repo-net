@@ -1,1 +1,7 @@
 C:\git\git\JSONBlog\XMLBlog\obj\Debug\ResolveAssemblyReference.cache
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\obj\Debug\ResolveAssemblyReference.cache
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\bin\Debug\XMLBlog.dll
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\bin\Debug\XMLBlog.pdb
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\bin\Debug\Newtonsoft.Json.dll
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\obj\Debug\XMLBlog.dll
+C:\git\json-blog-repo-net\JSONBlog\JSONBlog\obj\Debug\XMLBlog.pdb

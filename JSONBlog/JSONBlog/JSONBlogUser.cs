@@ -1,4 +1,4 @@
-﻿
+﻿//Created By: Charles Montgomery (2012.10.15 14:26)
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +9,12 @@ using Newtonsoft.Json;
 namespace JSONBlog
 {
     /// <summary>
-    /// Represents a registered user of this blog system.
+    /// Represents a the state of a registered user of this blog system.
     /// 
     /// </summary>
     /// 
     [Serializable()]
-    class JSONBlogUserState
+    public class JSONBlogUserState
     {
         
         public JSONBlogUserState(string username)
@@ -22,9 +22,9 @@ namespace JSONBlog
             this.username = username;
         }
         private string username;
-        [Serializable()]
+        
         private string passHash;
-        [Serializable()]
+        
         private int position;
         public int Position
         {
@@ -74,6 +74,8 @@ namespace JSONBlog
             }
             int pick = BitConverter.ToInt32(intPick, 0);
             pick %= 128;
+            if (pick < 0)
+                pick += 128;
             return pick;
         }
         private void placeHashInSalt(byte[] hash, byte[] salt, int position)
@@ -107,13 +109,30 @@ namespace JSONBlog
             }
         }
     }
-    class JSONBlogUser
+    public class JSONBlogUser
     {
         private JSONBlogUserState state;
         private const String INFO_FILE = "userInfo.json";       
-        private DirectoryInfo userDirectory;
-        [Serializable()]
-        
+        private DirectoryInfo userDirectory;        
+        public string Password
+        {
+            get
+            {
+                return state.Password;
+            }
+            set
+            {
+                state.Password = value;
+                writeDataToInfoFile();
+            }
+        }
+        public string User
+        {
+            get
+            {
+                return state.Username;
+            }
+        }
         public bool LoginSuccessful(string password)
         {
             byte[] hash = state.passwordToHash(password);
@@ -137,13 +156,13 @@ namespace JSONBlog
         public JSONBlogUser(DirectoryInfo userDirectory)
         {
             this.userDirectory = userDirectory;
-            
+            readDataFromInfoFile();
         }        
         public JSONBlogUser(DirectoryInfo userDirectory,string username,string password)
         {
             this.userDirectory = userDirectory;
             state = new JSONBlogUserState(username);
-            state.Password = password;
+            Password = password;
         }
         private FileInfo findInfoFile()
         {
@@ -156,14 +175,24 @@ namespace JSONBlog
             }
             return null;
         }
+        private void readDataFromInfoFile()
+        {
+            Stream infoStream = new FileStream(InfoFileInfo.FullName, FileMode.Open);
+            TextReader reader =  new StreamReader(infoStream,Encoding.UTF32);
+            string serialized = reader.ReadToEnd();
+            reader.Close();
+            state = JsonConvert.DeserializeObject<JSONBlogUserState>(serialized);        
+        }
         private void writeDataToInfoFile()
         {
-
+            Stream infoStream = new FileStream(InfoFileInfo.FullName, FileMode.Create);
+            writeDataToInfoStream(infoStream);
+            infoStream.Close();
         }
         private void writeDataToInfoStream(Stream info)
         {
             TextWriter textWriter = new StreamWriter(info, Encoding.UTF32);
-            string serialized = JsonConvert.ToString(this);
+            string serialized = JsonConvert.SerializeObject(state);
             textWriter.Write(serialized);
             textWriter.Close();
         }
