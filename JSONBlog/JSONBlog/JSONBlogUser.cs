@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using Newtonsoft.Json;
 namespace JSONBlog
 {
     /// <summary>
@@ -13,16 +14,25 @@ namespace JSONBlog
     /// </summary>
     /// 
     [Serializable()]
-    class JSONBlogUser
+    class JSONBlogUserState
     {
-        private const String INFO_FILE = "userInfo.json";       
-        private DirectoryInfo userDirectory;
-        [Serializable()]
+        
+        public JSONBlogUserState(string username)
+        {
+            this.username = username;
+        }
         private string username;
         [Serializable()]
         private string passHash;
         [Serializable()]
         private int position;
+        public int Position
+        {
+            get
+            {
+                return position;
+            }
+        }
         public string Password
         {
             get
@@ -39,21 +49,7 @@ namespace JSONBlog
                 passHash = Convert.ToBase64String(salt);
             }
         }
-        public bool LoginSuccessful(string password)
-        {
-            byte[] hash = passwordToHash(password);
-            byte[] passHash = Convert.FromBase64String(this.passHash);
-            byte[] storedhash = new byte[hash.Length];
-            if (position < hash.Length)
-            {
-                Array.Copy(passHash, position, storedhash, 0, storedhash.Length);
-            }
-            else
-            {
-
-            }
-        }
-        private byte[] passwordToHash(string password)
+        public byte[] passwordToHash(string password)
         {
             SHA512Managed sha512 = new SHA512Managed();
             MemoryStream passwordStore = new MemoryStream();
@@ -64,7 +60,7 @@ namespace JSONBlog
         }
         private byte[] generateSalt()
         {
-            byte[] salt = new byte[1024/8];
+            byte[] salt = new byte[1024 / 8];
             RNGCryptoServiceProvider.Create().GetBytes(salt);
             return salt;
         }
@@ -92,8 +88,9 @@ namespace JSONBlog
             }
             else if (position > hash.Length)
             {
-                int firstPartLength = position - hash.Length;
-                int lastPartLength = hash.Length - firstPartLength;
+
+                int lastPartLength = position - hash.Length;
+                int firstPartLength = hash.Length - lastPartLength;
                 Array.Copy(hash, 0, salt, position, firstPartLength);
                 Array.Copy(hash, firstPartLength, salt, 0, lastPartLength);
             }
@@ -109,6 +106,34 @@ namespace JSONBlog
                 return username;
             }
         }
+    }
+    class JSONBlogUser
+    {
+        private JSONBlogUserState state;
+        private const String INFO_FILE = "userInfo.json";       
+        private DirectoryInfo userDirectory;
+        [Serializable()]
+        
+        public bool LoginSuccessful(string password)
+        {
+            byte[] hash = state.passwordToHash(password);
+            byte[] passHash = Convert.FromBase64String(state.Password);
+            byte[] storedhash = new byte[hash.Length];
+            if (state.Position < hash.Length)
+            {
+                Array.Copy(passHash, state.Position, storedhash, 0, storedhash.Length);
+            }
+            else
+            {
+                int lastPartLength = state.Position - hash.Length;
+                int firstPartLength = hash.Length - lastPartLength;
+                Array.Copy(passHash, state.Position, storedhash, 0, firstPartLength);
+                Array.Copy(passHash, 0, storedhash, firstPartLength, lastPartLength);
+            }
+            String compare = Convert.ToBase64String(storedhash);
+            return compare.CompareTo(hash) == 0;
+        }
+        
         public JSONBlogUser(DirectoryInfo userDirectory)
         {
             this.userDirectory = userDirectory;
@@ -116,7 +141,56 @@ namespace JSONBlog
         }        
         public JSONBlogUser(DirectoryInfo userDirectory,string username,string password)
         {
+            this.userDirectory = userDirectory;
+            state = new JSONBlogUserState(username);
+            state.Password = password;
+        }
+        private FileInfo findInfoFile()
+        {
+            foreach (FileInfo file in userDirectory.EnumerateFiles())
+            {
+                if (file.Name.CompareTo(INFO_FILE) == 0)
+                {
+                    return file;
+                }
+            }
+            return null;
+        }
+        private void writeDataToInfoFile()
+        {
 
+        }
+        private void writeDataToInfoStream(Stream info)
+        {
+            TextWriter textWriter = new StreamWriter(info, Encoding.UTF32);
+            string serialized = JsonConvert.ToString(this);
+            textWriter.Write(serialized);
+            textWriter.Close();
+        }
+        private void createInfoFile()
+        {
+            String infoPath = Path.Combine(this.userDirectory.FullName, INFO_FILE);
+            FileInfo infoFileInfo = new FileInfo(infoPath);
+            Stream infoStream = infoFileInfo.Create();
+            writeDataToInfoStream(infoStream);
+            infoStream.Close();
+        }
+        public FileInfo InfoFileInfo
+        {
+            get
+            {
+                FileInfo infoFileInfo = findInfoFile();
+                if (infoFileInfo == null)
+                {
+                    createInfoFile();
+                }
+                infoFileInfo = findInfoFile();
+                if (infoFileInfo == null)
+                {
+                    throw new FailedToCreateUserInfoFileException();
+                }
+                return infoFileInfo;
+            }
         }
     }
 }
