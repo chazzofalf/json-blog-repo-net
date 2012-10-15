@@ -1,0 +1,1 @@
+C:\git\git\JSONBlog\XMLBlog\obj\Debug\ResolveAssemblyReference.cache
