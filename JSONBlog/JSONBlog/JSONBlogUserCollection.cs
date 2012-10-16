@@ -34,6 +34,18 @@ namespace JSONBlog
                 return UserDirectory.GetDirectories();
             }
         }
+        public string[] Usernames
+        {
+            get
+            {
+                List<string> namesList = new List<string>();
+                foreach (JSONBlogUser user in Users)
+                {
+                    namesList.Add(user.User);
+                }
+                return namesList.ToArray();
+            }
+        }
         private  JSONBlogUser[] Users
         {
             
@@ -47,8 +59,45 @@ namespace JSONBlog
                 return userList.ToArray();
             }
         }
+        public JSONBlogUser this[string name]
+        {
+            get
+            {
+                foreach (JSONBlogUser user in Users)
+                {
+                    if (user.User.CompareTo(name) == 0)
+                    {
+                        return user;
+                    }
+                }
+                return null;
+            }
+        }
+        public JSONBlogUser login(string username, string password)
+        {
+            if (this[username] == null)
+            {
+                throw new InvalidLoginException();
+            }
+            else if (!this[username].LoginSuccessful(password))
+            {
+                throw new InvalidLoginException();
+
+            }
+            else
+            {
+                return this[username];
+            }
+        }
         public  void addUser(string userName, string password)
         {
+            foreach (string username in Usernames)
+            {
+                if (username.CompareTo(userName) == 0)
+                {
+                    throw new UserAlreadyExistsException();
+                }
+            }
             DirectoryInfo userDirectory = createRandomDirectory();
             JSONBlogUser user = new JSONBlogUser(userDirectory, userName, password);
         }

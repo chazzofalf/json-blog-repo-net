@@ -17,7 +17,15 @@
             Username: <asp:TextBox runat="server" ID="CreateUserName"></asp:TextBox>
             <br />Password: <asp:TextBox runat="server" ID="CreateUserPassword" TextMode="Password"></asp:TextBox>
             <br /><asp:Button runat="server" ID="CreateUser" Text="Create User" 
-                onclick="CreateUser_Click"/>
+                onclick="CreateUser_Click"/><asp:Label runat="server" ID="CreateUserStatus"></asp:Label>
+        </asp:Panel>
+        <asp:Panel runat="server" BackColor="LightPink" BorderColor="Black" BorderStyle="Double" BorderWidth="10px">
+        <div style="text-align:center; border-bottom-color:Black;border-bottom-style:solid;border-bottom-width:thin">
+            Login Test
+        </div>
+        Username: <asp:TextBox runat="server" ID="LoginUserName"></asp:TextBox>
+        <br />Password: <asp:TextBox runat="server" ID="LoginPassword" TextMode="Password"></asp:TextBox>
+        <br /><asp:Button runat="server" ID="Login" Text="Login" onclick="Login_Click" /><asp:Label runat="server" ID="LoginStatus"></asp:Label>
         </asp:Panel>
     </div>
     </form>

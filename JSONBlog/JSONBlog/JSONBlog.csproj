@@ -48,10 +48,12 @@
     <Compile Include="AppData.cs" />
     <Compile Include="BadHttpContextException.cs" />
     <Compile Include="FailedToCreateUserInfoFileException.cs" />
+    <Compile Include="InvalidLoginException.cs" />
     <Compile Include="JSONBlog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="JSONBlogUser.cs" />
     <Compile Include="JSONBlogUserCollection.cs" />
+    <Compile Include="UserAlreadyExistsException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Newtonsoft.Json.dll" />

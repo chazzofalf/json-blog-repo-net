@@ -33,12 +33,19 @@ namespace JSONBlog
                 return position;
             }
         }
-        public string Password
+        public string PasswordHash
         {
             get
             {
                 return passHash;
             }
+            set
+            {
+                passHash = value;
+            }
+        }
+        public string Password
+        {            
             set
             {
                 byte[] salt = generateSalt();
@@ -55,6 +62,7 @@ namespace JSONBlog
             MemoryStream passwordStore = new MemoryStream();
             TextWriter passwordWriter = new StreamWriter(passwordStore, Encoding.UTF32);
             passwordWriter.Write(password);
+            passwordWriter.Flush();
             byte[] hash = sha512.ComputeHash(passwordStore.ToArray());
             return hash;
         }
@@ -98,7 +106,7 @@ namespace JSONBlog
             }
             else
             {
-                Array.Copy(hash, 0, salt, 0, hash.Length);
+                Array.Copy(hash, 0, salt, position, hash.Length);
             }
         }
         public string Username
@@ -118,7 +126,7 @@ namespace JSONBlog
         {
             get
             {
-                return state.Password;
+                return state.PasswordHash;
             }
             set
             {
@@ -136,9 +144,9 @@ namespace JSONBlog
         public bool LoginSuccessful(string password)
         {
             byte[] hash = state.passwordToHash(password);
-            byte[] passHash = Convert.FromBase64String(state.Password);
+            byte[] passHash = Convert.FromBase64String(state.PasswordHash);
             byte[] storedhash = new byte[hash.Length];
-            if (state.Position < hash.Length)
+            if (state.Position <= hash.Length)
             {
                 Array.Copy(passHash, state.Position, storedhash, 0, storedhash.Length);
             }
@@ -150,7 +158,8 @@ namespace JSONBlog
                 Array.Copy(passHash, 0, storedhash, firstPartLength, lastPartLength);
             }
             String compare = Convert.ToBase64String(storedhash);
-            return compare.CompareTo(hash) == 0;
+            String passtHash = Convert.ToBase64String(hash);
+            return compare.CompareTo(passtHash) == 0;
         }
         
         public JSONBlogUser(DirectoryInfo userDirectory)
